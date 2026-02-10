@@ -1,0 +1,40 @@
+linters:
+  disable-all: true
+  enable:
+    - errcheck
+    - govet
+    - staticcheck
+    - gosimple
+    - unused
+    - gocritic
+    - gofmt
+    - goimports
+    - misspell
+    - ineffassign
+    - unconvert
+
+linters-settings:
+  govet:
+    enable-all: true
+  errcheck:
+    check-blank: true
+    check-type-assertions: true
+  goimports:
+    local-prefixes: github.com/alexcatdad/catscan
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+run:
+  timeout: 5m
+  go: "1.25"
+  tests: true
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true
