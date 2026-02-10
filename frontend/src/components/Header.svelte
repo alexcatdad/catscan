@@ -268,4 +268,4 @@
 	</div>
 </header>
 
-<SettingsPanel show={showSettings} onClose={() => (showSettings = false)} data-testid="settings-panel" />
+<SettingsPanel show={showSettings} onClose={() => (showSettings = false)} />

@@ -1,0 +1,7 @@
+{
+  "what": "A local-only GitHub repository dashboard for tracking project health and lifecycle.",
+  "why": "I needed a way to track the status of many GitHub repositories—stale projects, missing READMEs, failing CI—without cloud dependencies or API rate limits. CatScan runs locally, polls GitHub at my own pace, and provides instant visibility into my entire portfolio.",
+  "tags": ["go", "svelte", "github", "dashboard", "devtools"],
+  "featured": false,
+  "order": 20
+}

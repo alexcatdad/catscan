@@ -1,4 +1,9 @@
-.PHONY: build dev dev-backend dev-frontend test lint clean e2e test-server help
+.PHONY: build dev dev-backend dev-frontend test lint clean e2e test-server install uninstall help
+
+# Installation paths
+BINARY_PATH ?= ~/.local/bin/catscan
+LAUNCHD_PATH = ~/Library/LaunchAgents/com.alexcatdad.catscan.plist
+LOG_DIR = ~/.config/catscan/logs
 
 # Default target
 help:
@@ -10,6 +15,8 @@ help:
 	@echo "  test     - Run Go tests and svelte-check"
 	@echo "  lint     - Run golangci-lint and biome check"
 	@echo "  clean    - Remove build artifacts"
+	@echo "  install  - Build and install CatScan locally"
+	@echo "  uninstall- Remove CatScan (preserves config)"
 
 # Build Svelte frontend first, then Go binary
 build:
@@ -61,3 +68,38 @@ e2e: build
 test-server: build
 	@echo "Starting test server on port 9527..."
 	CATSCAN_TEST=1 ./bin/catscan --test
+
+# Install CatScan
+install: build
+	@echo "Installing CatScan..."
+	@# Create log directory
+	@mkdir -p "$(LOG_DIR)"
+	@# Copy binary
+	@cp ./bin/catscan "$(BINARY_PATH)"
+	@chmod +x "$(BINARY_PATH)"
+	@# Generate and install launchd plist
+	@sed -e 's|{{BINARY_PATH}}|$(BINARY_PATH)|g' \
+		-e 's|{{HOME_DIR}}|$(HOME)|g' \
+		com.alexcatdad.catscan.plist.template > "$(LAUNCHD_PATH)"
+	@# Load the launchd agent
+	@launchctl load "$(LAUNCHD_PATH)" 2>/dev/null || true
+	@echo "CatScan installed successfully!"
+	@echo "Binary: $(BINARY_PATH)"
+	@echo "Launchd agent: $(LAUNCHD_PATH)"
+	@echo "Logs: $(LOG_DIR)"
+	@echo ""
+	@echo "Configure your settings by:"
+	@echo "1. Open http://localhost:7700 in your browser (or your configured port)"
+	@echo "2. Click the settings icon (gear) to configure scan path and GitHub owner"
+
+# Uninstall CatScan
+uninstall:
+	@echo "Uninstalling CatScan..."
+	@# Unload the launchd agent
+	@-launchctl unload "$(LAUNCHD_PATH)" 2>/dev/null || true
+	@# Remove the plist
+	@-rm "$(LAUNCHD_PATH)" 2>/dev/null || true
+	@# Remove the binary
+	@-rm "$(BINARY_PATH)" 2>/dev/null || true
+	@echo "CatScan uninstalled."
+	@echo "Note: Config and cache files in ~/.config/catscan/ were preserved."
