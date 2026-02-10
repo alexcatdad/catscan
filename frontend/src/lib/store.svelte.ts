@@ -1,9 +1,11 @@
 // Main application store using Svelte 5 runes.
 // This file MUST be .svelte.ts for rune compilation.
 //
-// Pattern: internal $state (prefixed _) for mutation,
+// Pattern: internal $state for mutation,
 // exported getter functions for reactive readonly access from components.
-// Svelte 5 modules can't export $state or $derived directly.
+// Svelte 5 modules can't export $state/$derived, and $derived.by at module
+// top-level causes effect_orphan (no reactive owner at import time).
+// Plain getters reading $state are still reactive in template contexts.
 
 import * as api from "./api";
 import { type SSEHandlers, createSSEClient } from "./sse";
@@ -35,9 +37,9 @@ export function expandedRepo() { return _expandedRepo; }
 export function selectedRepos() { return _selectedRepos; }
 export function ghError() { return _ghError; }
 
-// --- Computed derived values (internal, exposed via getters) ---
+// --- Computed getters (recompute on each call; $state access keeps them reactive) ---
 
-const _filteredRepos = $derived.by(() => {
+export function filteredRepos(): Repo[] {
 	let result = [..._repos];
 
 	if (_filters.lifecycle) {
@@ -70,9 +72,9 @@ const _filteredRepos = $derived.by(() => {
 	});
 
 	return result;
-});
+}
 
-const _summaryStats = $derived.by(() => {
+export function summaryStats(): SummaryStats {
 	const stats: SummaryStats = {
 		total: _repos.length,
 		cloned: 0,
@@ -105,20 +107,18 @@ const _summaryStats = $derived.by(() => {
 	}
 
 	return stats;
-});
+}
 
-const _clonableSelected = $derived.by(() => {
+function clonableSelected(): string[] {
 	return [..._selectedRepos].filter((name) => {
 		const repo = _repos.find((r) => r.Name === name);
 		return repo && !repo.Cloned;
 	});
-});
+}
 
-export function filteredRepos() { return _filteredRepos; }
-export function summaryStats() { return _summaryStats; }
-export function filteredCount() { return _filteredRepos.length; }
+export function filteredCount() { return filteredRepos().length; }
 export function selectedCount() { return _selectedRepos.size; }
-export function canClone() { return _clonableSelected.length > 0 && _cloneInProgress.size === 0; }
+export function canClone() { return clonableSelected().length > 0 && _cloneInProgress.size === 0; }
 
 // --- Actions ---
 
@@ -257,7 +257,7 @@ export function clearSelection(): void {
 }
 
 export async function cloneSelected(): Promise<void> {
-	for (const repoName of _clonableSelected) {
+	for (const repoName of clonableSelected()) {
 		try {
 			await api.cloneRepo(repoName);
 		} catch (err) {
