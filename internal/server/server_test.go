@@ -439,7 +439,7 @@ func TestHealthEndpointShape(t *testing.T) {
 	}
 
 	// Check required fields
-	requiredFields := []string{"uptime", "lastLocalPoll", "lastGitHubPoll", "totalRepos", "ghAvailable", "ghAuthenticated"}
+	requiredFields := []string{"Uptime", "LastLocalPoll", "LastGitHubPoll", "TotalRepos", "GhAvailable", "GhAuthenticated"}
 	for _, field := range requiredFields {
 		if _, ok := health[field]; !ok {
 			t.Errorf("response missing field: %s", field)

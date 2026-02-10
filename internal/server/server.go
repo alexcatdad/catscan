@@ -401,12 +401,12 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	lastGitHub := s.poller.GetLastGitHubPoll()
 
 	health := map[string]interface{}{
-		"uptime":          time.Since(s.startTime).String(),
-		"lastLocalPoll":   lastLocal.Format(time.RFC3339),
-		"lastGitHubPoll":  lastGitHub.Format(time.RFC3339),
-		"totalRepos":      len(repos),
-		"ghAvailable":     ghAvailable,
-		"ghAuthenticated": ghAuthenticated,
+		"Uptime":          time.Since(s.startTime).String(),
+		"LastLocalPoll":   lastLocal.Format(time.RFC3339),
+		"LastGitHubPoll":  lastGitHub.Format(time.RFC3339),
+		"TotalRepos":      len(repos),
+		"GhAvailable":     ghAvailable,
+		"GhAuthenticated": ghAuthenticated,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
