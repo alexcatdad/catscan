@@ -386,14 +386,15 @@ func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
 	// Get repo count
 	repos, _ := cache.ReadRepos()
 
-	// Check gh CLI availability
+	// Check gh CLI availability and authentication
 	ghAvailable := false
 	ghAuthenticated := false
-	if _, err := exec.LookPath("gh"); err == nil {
+	if ghPath, err := exec.LookPath("gh"); err == nil {
 		ghAvailable = true
-		// Check authentication by running a simple command
-		// We'd use the scanner's IsGHNotFound check
-		// For now, we'll just check if gh is available
+		cmd := exec.Command(ghPath, "auth", "status")
+		if cmd.Run() == nil {
+			ghAuthenticated = true
+		}
 	}
 
 	// Get poll times
