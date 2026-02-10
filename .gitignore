@@ -1,0 +1,17 @@
+# Build artifacts
+bin/
+dist/
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# macOS
+.DS_Store
+*.exe
+
+# Temporary files
+tmp/
+
+# Git worktrees
+.worktrees/
