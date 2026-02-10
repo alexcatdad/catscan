@@ -1,6 +1,7 @@
 # Build artifacts
 bin/
 dist/
+/catscan
 
 # Node
 node_modules/
