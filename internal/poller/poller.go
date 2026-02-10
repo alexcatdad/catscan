@@ -138,13 +138,18 @@ func (p *Poller) localPoll(ctx context.Context) {
 	if cachedRepos, err := cache.ReadRepos(); err == nil {
 		// Extract GitHub repo data from cached repos
 		for _, repo := range cachedRepos {
+			// Convert flat topic strings back to RepositoryTopic objects
+			var topics []scanner.RepositoryTopic
+			for _, t := range repo.Topics {
+				topics = append(topics, scanner.RepositoryTopic{Name: t})
+			}
 			ghRepo := scanner.GitHubRepo{
-				Name:         repo.Name,
-				Description:  repo.Description,
-				Visibility:   string(repo.Visibility),
-				HomepageURL:  repo.HomepageURL,
-				Topics:       repo.Topics,
-				HasPages:     repo.HasPages,
+				Name:        repo.Name,
+				Description: repo.Description,
+				Visibility:  string(repo.Visibility),
+				HomepageURL: repo.HomepageURL,
+				Topics:      topics,
+				PushedAt:    repo.GitHubLastPush.Format(time.RFC3339),
 			}
 			if repo.Language != "" {
 				ghRepo.PrimaryLanguage = &scanner.PrimaryLanguage{Name: repo.Language}

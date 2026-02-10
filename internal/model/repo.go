@@ -43,57 +43,66 @@ const (
 	VisibilityPrivate Visibility = "private"
 )
 
+// CompletenessInfo tracks which docs/files exist in a repo.
+type CompletenessInfo struct {
+	HasDescription bool `json:"HasDescription"`
+	HasReadme      bool `json:"HasReadme"`
+	HasLicense     bool `json:"HasLicense"`
+	HasTopics      bool `json:"HasTopics"`
+	HasPages       bool `json:"HasPages"`
+	HasHomepage    bool `json:"HasHomepage"`
+	HasProjectJson bool `json:"HasProjectJson"`
+	HasClaudeMd    bool `json:"HasClaudeMd"`
+	HasAgentsMd    bool `json:"HasAgentsMd"`
+}
+
 // Repo represents a unified view of a repository combining local git state
 // and GitHub metadata.
 type Repo struct {
 	// Identity
-	Name      string    `json:"name"`
-	FullName  string    `json:"fullName"`
-	Visibility Visibility `json:"visibility"`
+	Name       string     `json:"Name"`
+	FullName   string     `json:"FullName"`
+	Visibility Visibility `json:"Visibility"`
 
 	// Clone state
-	Cloned    bool   `json:"cloned"`
-	LocalPath string `json:"localPath,omitempty"`
+	Cloned    bool   `json:"Cloned"`
+	LocalPath string `json:"LocalPath,omitempty"`
 
 	// Local git (cloned repos only)
-	Branch           string    `json:"branch,omitempty"`
-	Dirty            bool      `json:"dirty,omitempty"`
-	LocalLastCommit  time.Time `json:"localLastCommit,omitempty"`
+	Branch          string    `json:"Branch,omitempty"`
+	Dirty           bool      `json:"Dirty,omitempty"`
+	LocalLastCommit time.Time `json:"LocalLastCommit,omitempty"`
 
 	// GitHub metadata
-	Description     string   `json:"description,omitempty"`
-	HomepageURL     string   `json:"homepageUrl,omitempty"`
-	Language        string   `json:"language,omitempty"`
-	Topics          []string `json:"topics,omitempty"`
-	HasPages        bool     `json:"hasPages"`
-	HasREADME       bool     `json:"hasReadme"`
-	HasLicense      bool     `json:"hasLicense"`
-	HasCLAUDEmd     bool     `json:"hasClaudeMd"`
-	HasAGENTSmd     bool     `json:"hasAgentsMd"`
-	HasProjectJson  bool     `json:"hasProjectJson"`
-	BranchProtected bool     `json:"branchProtected"`
+	Description string   `json:"Description,omitempty"`
+	HomepageURL string   `json:"HomepageURL,omitempty"`
+	Language    string   `json:"Language,omitempty"`
+	Topics      []string `json:"Topics,omitempty"`
+
+	// Completeness (nested for frontend consumption)
+	Completeness CompletenessInfo `json:"Completeness"`
 
 	// Activity
-	GitHubLastPush time.Time     `json:"githubLastPush"`
-	OpenPRs        int            `json:"openPrs"`
-	ActionsStatus  ActionsStatus  `json:"actionsStatus"`
-	LatestRelease  *ReleaseInfo  `json:"latestRelease,omitempty"`
-	NewRelease     bool           `json:"newRelease"`
+	GitHubLastPush time.Time     `json:"GitHubLastPush"`
+	OpenPRs        int           `json:"OpenPRs"`
+	ActionsStatus  ActionsStatus `json:"ActionsStatus"`
+	LatestRelease  *ReleaseInfo  `json:"LatestRelease,omitempty"`
+	NewRelease     bool          `json:"NewRelease"`
 
 	// Computed
-	Lifecycle Lifecycle `json:"lifecycle"`
+	Lifecycle Lifecycle `json:"Lifecycle"`
 }
 
 // ReleaseInfo represents a GitHub release.
 type ReleaseInfo struct {
-	TagName     string    `json:"tagName"`
-	PublishedAt time.Time `json:"publishedAt"`
+	TagName     string    `json:"TagName"`
+	PublishedAt time.Time `json:"PublishedAt"`
 }
 
 // LifecycleThresholds defines the day thresholds for lifecycle classification.
 type LifecycleThresholds struct {
-	StaleDays      int
-	AbandonedDays  int
+	StaleDays     int
+	AbandonedDays int
 }
 
 // ComputeLifecycle calculates the lifecycle status based on activity signals.
@@ -120,9 +129,6 @@ func (r *Repo) ComputeLifecycle(thresholds LifecycleThresholds) Lifecycle {
 	}
 
 	// At this point, no ongoing indicators
-	// Check if maintenance (old commits but CI was passing at some point)
-	// Since we check for "no CI activity" above, if we reach here with
-	// ActionsStatus == None, we need to look at commit age
 	if !r.GitHubLastPush.IsZero() {
 		daysSincePush := int(now.Sub(r.GitHubLastPush).Hours() / 24)
 

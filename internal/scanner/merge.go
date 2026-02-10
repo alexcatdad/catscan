@@ -60,20 +60,37 @@ func Merge(
 			repo.Visibility = parseVisibility(ghRepo.Visibility)
 			repo.Description = ghRepo.Description
 			repo.HomepageURL = ghRepo.HomepageURL
+
+			// Extract topic names from nested objects
 			if ghRepo.Topics != nil {
-				repo.Topics = ghRepo.Topics
+				topics := make([]string, 0, len(ghRepo.Topics))
+				for _, t := range ghRepo.Topics {
+					topics = append(topics, t.Name)
+				}
+				repo.Topics = topics
 			}
-			repo.HasPages = ghRepo.HasPages
+
+			// Parse pushedAt for lifecycle calculation
+			if ghRepo.PushedAt != "" {
+				if pushTime, err := time.Parse(time.RFC3339, ghRepo.PushedAt); err == nil {
+					repo.GitHubLastPush = pushTime
+				}
+			}
 
 			// Activity data from per-repo GitHub fetches
 			repo.OpenPRs = ghRepo.OpenPRs
 			repo.ActionsStatus = model.ActionsStatus(ghRepo.ActionsStatus)
+
+			// Completeness info
+			repo.Completeness.HasDescription = ghRepo.Description != ""
+			repo.Completeness.HasTopics = len(ghRepo.Topics) > 0
+			repo.Completeness.HasHomepage = ghRepo.HomepageURL != ""
 			if ghRepo.FilePresence != nil {
-				repo.HasREADME = ghRepo.FilePresence.HasREADME
-				repo.HasLicense = ghRepo.FilePresence.HasLICENSE
-				repo.HasCLAUDEmd = ghRepo.FilePresence.HasCLAUDEmd
-				repo.HasAGENTSmd = ghRepo.FilePresence.HasAGENTSmd
-				repo.HasProjectJson = ghRepo.FilePresence.HasProjectJson
+				repo.Completeness.HasReadme = ghRepo.FilePresence.HasREADME
+				repo.Completeness.HasLicense = ghRepo.FilePresence.HasLICENSE
+				repo.Completeness.HasClaudeMd = ghRepo.FilePresence.HasCLAUDEmd
+				repo.Completeness.HasAgentsMd = ghRepo.FilePresence.HasAGENTSmd
+				repo.Completeness.HasProjectJson = ghRepo.FilePresence.HasProjectJson
 			}
 
 			// Release info

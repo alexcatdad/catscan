@@ -67,9 +67,10 @@ func TestWriteAndReadReposRoundTrip(t *testing.T) {
 			OpenPRs:         0,
 			ActionsStatus:   model.ActionsStatusNone,
 			Lifecycle:       model.LifecycleStale,
-			HasREADME:       true,
-			HasLicense:      true,
-			BranchProtected: true,
+			Completeness: model.CompletenessInfo{
+				HasReadme:  true,
+				HasLicense: true,
+			},
 		},
 	}
 
@@ -110,8 +111,8 @@ func TestWriteAndReadReposRoundTrip(t *testing.T) {
 	if loaded[1].Name != testRepos[1].Name {
 		t.Errorf("Name = %s, want %s", loaded[1].Name, testRepos[1].Name)
 	}
-	if loaded[1].HasREADME != testRepos[1].HasREADME {
-		t.Errorf("HasREADME = %v, want %v", loaded[1].HasREADME, testRepos[1].HasREADME)
+	if loaded[1].Completeness.HasReadme != testRepos[1].Completeness.HasReadme {
+		t.Errorf("Completeness.HasReadme = %v, want %v", loaded[1].Completeness.HasReadme, testRepos[1].Completeness.HasReadme)
 	}
 }
 

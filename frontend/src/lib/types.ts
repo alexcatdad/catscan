@@ -63,22 +63,25 @@ export interface Repo {
 }
 
 // Config represents the CatScan configuration.
+// Keys match Go's camelCase JSON tags (config is persisted to disk).
 export interface Config {
-	ScanPath: string;
-	GitHubOwner: string;
-	Port: number;
-	LocalIntervalSeconds: number;
-	GitHubIntervalSeconds: number;
-	StaleDays: number;
-	AbandonedDays: number;
-	Notifications: NotificationsConfig;
+	scanPath: string;
+	githubOwner: string;
+	port: number;
+	localIntervalSeconds: number;
+	githubIntervalSeconds: number;
+	staleDays: number;
+	abandonedDays: number;
+	notifications: NotificationsConfig;
 }
 
 // NotificationsConfig represents notification settings.
 export interface NotificationsConfig {
-	ActionsChanged: boolean;
-	NewRelease: boolean;
-	PROpened: boolean;
+	actionsChanged: boolean;
+	newRelease: boolean;
+	prOpened: boolean;
+	cloneCompleted: boolean;
+	error: boolean;
 }
 
 // Health represents the health check response.

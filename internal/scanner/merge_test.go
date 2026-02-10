@@ -144,8 +144,7 @@ func TestMergeFullyMatchedRepo(t *testing.T) {
 			PrimaryLanguage: &scanner.PrimaryLanguage{
 				Name: "Go",
 			},
-			Topics: []string{"tag1", "tag2"},
-			HasPages: true,
+			Topics: []scanner.RepositoryTopic{{Name: "tag1"}, {Name: "tag2"}},
 			DefaultBranch: &scanner.DefaultBranch{
 				Name: "main",
 			},
@@ -195,8 +194,8 @@ func TestMergeFullyMatchedRepo(t *testing.T) {
 	if len(repo.Topics) != 2 {
 		t.Errorf("len(Topics) = %d, want 2", len(repo.Topics))
 	}
-	if !repo.HasPages {
-		t.Error("HasPages = false, want true")
+	if !repo.Completeness.HasHomepage {
+		t.Error("Completeness.HasHomepage = false, want true")
 	}
 
 	// Release info

@@ -92,17 +92,23 @@ func runGH(args ...string) (string, error) {
 	return stdout.String(), nil
 }
 
+// RepositoryTopic represents a topic from gh repo list (nested object with name).
+type RepositoryTopic struct {
+	Name string `json:"name"`
+}
+
 // GitHubRepo represents a GitHub repository from the gh CLI.
 type GitHubRepo struct {
-	Name            string           `json:"name"`
-	Description     string           `json:"description"`
-	Visibility      string           `json:"visibility"`
-	HomepageURL     string           `json:"homepageUrl"`
-	PrimaryLanguage *PrimaryLanguage `json:"primaryLanguage"`
-	Topics          []string         `json:"repositoryTopics"`
-	HasPages        bool             `json:"hasPages"`
-	DefaultBranch   *DefaultBranch   `json:"defaultBranchRef"`
-	LatestRelease   *LatestRelease   `json:"latestRelease"`
+	Name            string             `json:"name"`
+	Description     string             `json:"description"`
+	Visibility      string             `json:"visibility"`
+	HomepageURL     string             `json:"homepageUrl"`
+	PrimaryLanguage *PrimaryLanguage   `json:"primaryLanguage"`
+	Topics          []RepositoryTopic  `json:"repositoryTopics"`
+	DefaultBranch   *DefaultBranch     `json:"defaultBranchRef"`
+	LatestRelease   *LatestRelease     `json:"latestRelease"`
+	PushedAt        string             `json:"pushedAt"`
+	IsArchived      bool               `json:"isArchived"`
 
 	// Per-repo data fetched separately (not from gh repo list JSON)
 	OpenPRs       int           `json:"-"`
@@ -128,7 +134,7 @@ type LatestRelease struct {
 
 // ListGitHubRepos lists all repositories for the given owner using gh CLI.
 func ListGitHubRepos(owner string) ([]GitHubRepo, error) {
-	output, err := runGH("repo", "list", owner, "--json", "name,description,visibility,homepageUrl,primaryLanguage,repositoryTopics,hasPages,defaultBranchRef,latestRelease", "--limit", "200")
+	output, err := runGH("repo", "list", owner, "--json", "name,description,visibility,homepageUrl,primaryLanguage,repositoryTopics,defaultBranchRef,latestRelease,pushedAt,isArchived", "--limit", "200")
 	if err != nil {
 		return nil, fmt.Errorf("listing repos: %w", err)
 	}

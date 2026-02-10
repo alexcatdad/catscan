@@ -74,7 +74,7 @@ const completenessItems = [
 	</div>
 
 	<!-- Topics -->
-	{#if repo.Topics.length > 0}
+	{#if repo.Topics && repo.Topics.length > 0}
 		<div class="md:col-span-2">
 		<h3 class="mb-2 text-sm font-medium text-[var(--color-fg-subtle)]">Topics</h3>
 		<div class="flex flex-wrap gap-1" data-testid="repo-topics">

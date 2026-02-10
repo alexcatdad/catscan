@@ -35,16 +35,16 @@
 		try {
 			const cfg = await getConfig();
 			config = cfg;
-			scanPath = cfg.ScanPath;
-			gitHubOwner = cfg.GitHubOwner;
-			port = cfg.Port;
-			localIntervalSeconds = cfg.LocalIntervalSeconds;
-			gitHubIntervalSeconds = cfg.GitHubIntervalSeconds;
-			staleDays = cfg.StaleDays;
-			abandonedDays = cfg.AbandonedDays;
-			actionsChanged = cfg.Notifications.ActionsChanged;
-			newRelease = cfg.Notifications.NewRelease;
-			pROpened = cfg.Notifications.PROpened;
+			scanPath = cfg.scanPath;
+			gitHubOwner = cfg.githubOwner;
+			port = cfg.port;
+			localIntervalSeconds = cfg.localIntervalSeconds;
+			gitHubIntervalSeconds = cfg.githubIntervalSeconds;
+			staleDays = cfg.staleDays;
+			abandonedDays = cfg.abandonedDays;
+			actionsChanged = cfg.notifications.actionsChanged;
+			newRelease = cfg.notifications.newRelease;
+			pROpened = cfg.notifications.prOpened;
 		} catch (err) {
 			error = err instanceof Error ? err.message : "Failed to load config";
 		} finally {
@@ -71,17 +71,19 @@
 		error = null;
 		try {
 			const newConfig: Config = {
-				ScanPath: scanPath,
-				GitHubOwner: gitHubOwner,
-				Port: port,
-				LocalIntervalSeconds: localIntervalSeconds,
-				GitHubIntervalSeconds: gitHubIntervalSeconds,
-				StaleDays: staleDays,
-				AbandonedDays: abandonedDays,
-				Notifications: {
-					ActionsChanged: actionsChanged,
-					NewRelease: newRelease,
-					PROpened: pROpened,
+				scanPath,
+				githubOwner: gitHubOwner,
+				port,
+				localIntervalSeconds,
+				githubIntervalSeconds: gitHubIntervalSeconds,
+				staleDays,
+				abandonedDays,
+				notifications: {
+					actionsChanged,
+					newRelease,
+					prOpened: pROpened,
+					cloneCompleted: config?.notifications.cloneCompleted ?? true,
+					error: config?.notifications.error ?? true,
 				},
 			};
 			await updateConfig(newConfig);
