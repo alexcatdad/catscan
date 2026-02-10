@@ -11,12 +11,43 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/alexcatdad/catscan/internal/model"
 )
 
+var (
+	testCachePath string
+	testPathMu    sync.RWMutex
+)
+
+// SetCachePath sets a custom cache path for testing.
+func SetCachePath(path string) {
+	testPathMu.Lock()
+	defer testPathMu.Unlock()
+	testCachePath = path
+}
+
+// GetCachePath returns the current cache path (for testing).
+func GetCachePath() string {
+	testPathMu.RLock()
+	defer testPathMu.RUnlock()
+	if testCachePath != "" {
+		return testCachePath
+	}
+	path, _ := cachePath()
+	return path
+}
+
 // cacheDir returns the CatScan cache directory path (~/.config/catscan/).
 func cacheDir() (string, error) {
+	testPathMu.RLock()
+	if testCachePath != "" {
+		testPathMu.RUnlock()
+		return filepath.Dir(testCachePath), nil
+	}
+	testPathMu.RUnlock()
+
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "", fmt.Errorf("getting home directory: %w", err)
@@ -28,6 +59,13 @@ func cacheDir() (string, error) {
 
 // cachePath returns the full path to cache.json.
 func cachePath() (string, error) {
+	testPathMu.RLock()
+	if testCachePath != "" {
+		testPathMu.RUnlock()
+		return testCachePath, nil
+	}
+	testPathMu.RUnlock()
+
 	dir, err := cacheDir()
 	if err != nil {
 		return "", err
@@ -37,6 +75,13 @@ func cachePath() (string, error) {
 
 // statePath returns the full path to state.json.
 func statePath() (string, error) {
+	testPathMu.RLock()
+	if testCachePath != "" {
+		testPathMu.RUnlock()
+		return filepath.Join(filepath.Dir(testCachePath), "state.json"), nil
+	}
+	testPathMu.RUnlock()
+
 	dir, err := cacheDir()
 	if err != nil {
 		return "", err

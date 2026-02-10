@@ -16,13 +16,13 @@ import (
 	"github.com/alexcatdad/catscan/internal/config"
 	"github.com/alexcatdad/catscan/internal/model"
 	"github.com/alexcatdad/catscan/internal/scanner"
-	"github.com/alexcatdad/catscan/internal/server"
+	"github.com/alexcatdad/catscan/internal/sse"
 )
 
 // Poller manages background polling for repository data.
 type Poller struct {
 	cfg             *config.Config
-	hub             *server.SSEHub
+	hub             *sse.Hub
 	state           cache.RepoState
 	stateMu         sync.RWMutex
 	lastLocalPoll   time.Time
@@ -36,7 +36,7 @@ type Poller struct {
 }
 
 // NewPoller creates a new Poller.
-func NewPoller(cfg *config.Config, hub *server.SSEHub) *Poller {
+func NewPoller(cfg *config.Config, hub *sse.Hub) *Poller {
 	return &Poller{
 		cfg:   cfg,
 		hub:   hub,

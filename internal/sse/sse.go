@@ -1,7 +1,8 @@
-// Package server provides the HTTP server for CatScan.
+// Package sse provides Server-Sent Events (SSE) for real-time updates.
 //
-// The sse subpackage handles Server-Sent Events (SSE) for real-time updates.
-package server
+// The SSE hub manages connected clients and broadcasts events
+// to all connected clients for real-time updates.
+package sse
 
 import (
 	"context"
@@ -11,42 +12,42 @@ import (
 	"sync"
 )
 
-// SSEEvent represents a server-sent event.
-type SSEEvent struct {
+// Event represents a server-sent event.
+type Event struct {
 	Type string      `json:"type"`
 	Data interface{} `json:"data"`
 }
 
-// SSEClient represents a connected SSE client.
-type SSEClient struct {
+// Client represents a connected SSE client.
+type Client struct {
 	ID     string
-	Chan   chan SSEEvent
+	Chan   chan Event
 	Ctx    context.Context
 	Cancel context.CancelFunc
 }
 
-// SSEHub manages connected SSE clients and broadcasts events.
-type SSEHub struct {
-	clients map[string]*SSEClient
-	mu      sync.RWMutex
-	register chan *SSEClient
+// Hub manages connected SSE clients and broadcasts events.
+type Hub struct {
+	clients    map[string]*Client
+	mu         sync.RWMutex
+	register   chan *Client
 	unregister chan string
-	broadcast  chan SSEEvent
+	broadcast  chan Event
 }
 
-// NewSSEHub creates a new SSE hub.
-func NewSSEHub() *SSEHub {
-	return &SSEHub{
-		clients:    make(map[string]*SSEClient),
-		register:   make(chan *SSEClient),
+// NewHub creates a new SSE hub.
+func NewHub() *Hub {
+	return &Hub{
+		clients:    make(map[string]*Client),
+		register:   make(chan *Client),
 		unregister: make(chan string),
-		broadcast:  make(chan SSEEvent, 100), // Buffered to prevent blocking
+		broadcast:  make(chan Event, 100), // Buffered to prevent blocking
 	}
 }
 
 // Run starts the SSE hub's event loop.
 // It should be run in a separate goroutine.
-func (h *SSEHub) Run(ctx context.Context) {
+func (h *Hub) Run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
@@ -55,7 +56,7 @@ func (h *SSEHub) Run(ctx context.Context) {
 			for _, client := range h.clients {
 				close(client.Chan)
 			}
-			h.clients = make(map[string]*SSEClient)
+			h.clients = make(map[string]*Client)
 			h.mu.Unlock()
 			return
 
@@ -79,18 +80,18 @@ func (h *SSEHub) Run(ctx context.Context) {
 }
 
 // Register registers a new SSE client.
-func (h *SSEHub) Register(client *SSEClient) {
+func (h *Hub) Register(client *Client) {
 	h.register <- client
 }
 
 // Unregister unregisters an SSE client by ID.
-func (h *SSEHub) Unregister(id string) {
+func (h *Hub) Unregister(id string) {
 	h.unregister <- id
 }
 
 // Broadcast broadcasts an event to all connected clients.
-func (h *SSEHub) Broadcast(eventType string, data interface{}) {
-	h.broadcast <- SSEEvent{
+func (h *Hub) Broadcast(eventType string, data interface{}) {
+	h.broadcast <- Event{
 		Type: eventType,
 		Data: data,
 	}
@@ -98,7 +99,7 @@ func (h *SSEHub) Broadcast(eventType string, data interface{}) {
 
 // broadcastEvent sends an event to all connected clients.
 // It does not block if a client's channel is full.
-func (h *SSEHub) broadcastEvent(event SSEEvent) {
+func (h *Hub) broadcastEvent(event Event) {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
@@ -115,7 +116,7 @@ func (h *SSEHub) broadcastEvent(event SSEEvent) {
 }
 
 // ClientCount returns the number of connected clients.
-func (h *SSEHub) ClientCount() int {
+func (h *Hub) ClientCount() int {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 	return len(h.clients)
@@ -123,7 +124,7 @@ func (h *SSEHub) ClientCount() int {
 
 // SendToClient sends an event to a specific client.
 // Returns false if the client is not found or the channel is full.
-func (h *SSEHub) SendToClient(id string, event SSEEvent) bool {
+func (h *Hub) SendToClient(id string, event Event) bool {
 	h.mu.RLock()
 	client, ok := h.clients[id]
 	h.mu.RUnlock()
@@ -140,8 +141,8 @@ func (h *SSEHub) SendToClient(id string, event SSEEvent) bool {
 	}
 }
 
-// formatSSE formats an SSE event for HTTP response.
-func formatSSE(event SSEEvent) string {
+// formatEvent formats an SSE event for HTTP response.
+func formatEvent(event Event) string {
 	data, err := json.Marshal(event.Data)
 	if err != nil {
 		data = []byte(`{"error":"failed to marshal data"}`)
@@ -150,22 +151,22 @@ func formatSSE(event SSEEvent) string {
 	return fmt.Sprintf("event: %s\ndata: %s\n\n", event.Type, string(data))
 }
 
-// SSEHandler wraps an SSE client to provide an http.Handler.
+// Handler wraps an SSE client to provide an http.Handler.
 // It handles the SSE connection lifecycle.
-type SSEHandler struct {
-	hub    *SSEHub
-	client *SSEClient
+type Handler struct {
+	hub    *Hub
+	client *Client
 }
 
-// NewSSEHandler creates a new SSE handler for the given hub.
-func NewSSEHandler(hub *SSEHub, clientID string) *SSEHandler {
+// NewHandler creates a new SSE handler for the given hub.
+func NewHandler(hub *Hub, clientID string) *Handler {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	return &SSEHandler{
+	return &Handler{
 		hub: hub,
-		client: &SSEClient{
+		client: &Client{
 			ID:     clientID,
-			Chan:   make(chan SSEEvent, 10), // Buffered for client
+			Chan:   make(chan Event, 10), // Buffered for client
 			Ctx:    ctx,
 			Cancel: cancel,
 		},
@@ -173,7 +174,7 @@ func NewSSEHandler(hub *SSEHub, clientID string) *SSEHandler {
 }
 
 // ServeHTTP implements http.Handler for SSE connections.
-func (h *SSEHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Set SSE headers
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
@@ -193,7 +194,7 @@ func (h *SSEHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer h.hub.Unregister(h.client.ID)
 
 	// Send initial connection message
-	h.sendEvent(w, SSEEvent{
+	h.sendEvent(w, Event{
 		Type: "connected",
 		Data: map[string]string{"clientId": h.client.ID},
 	}, flusher)
@@ -221,7 +222,7 @@ func (h *SSEHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // sendEvent sends an SSE event to the response writer.
 // Returns false if the client disconnected.
-func (h *SSEHandler) sendEvent(w http.ResponseWriter, event SSEEvent, flusher http.Flusher) bool {
+func (h *Handler) sendEvent(w http.ResponseWriter, event Event, flusher http.Flusher) bool {
 	// Check if client is still connected
 	select {
 	case <-h.client.Ctx.Done():
@@ -229,12 +230,12 @@ func (h *SSEHandler) sendEvent(w http.ResponseWriter, event SSEEvent, flusher ht
 	default:
 	}
 
-	fmt.Fprint(w, formatSSE(event))
+	fmt.Fprint(w, formatEvent(event))
 	flusher.Flush()
 	return true
 }
 
 // GetClient returns the SSE client for this handler.
-func (h *SSEHandler) GetClient() *SSEClient {
+func (h *Handler) GetClient() *Client {
 	return h.client
 }

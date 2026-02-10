@@ -178,7 +178,7 @@ func TestGetGitStateWithRealRepo(t *testing.T) {
 	}
 
 	// Check results
-	branch = branch // Suppress unused warning
+	_ = branch // Used in the condition below
 	if branch != "main" && branch != "master" {
 		// Different git versions may have different default branches
 		// Just verify it's not empty

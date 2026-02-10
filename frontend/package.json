@@ -20,5 +20,8 @@
 	},
 	"peerDependencies": {
 		"typescript": "^5"
+	},
+	"dependencies": {
+		"svelte-feather-icons": "^4.2.0"
 	}
 }

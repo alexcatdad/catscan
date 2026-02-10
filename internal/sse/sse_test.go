@@ -1,4 +1,4 @@
-package server_test
+package sse_test
 
 import (
 	"context"
@@ -7,20 +7,20 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alexcatdad/catscan/internal/server"
+	"github.com/alexcatdad/catscan/internal/sse"
 )
 
 // TestSSEHubRegisterClient tests client registration.
 func TestSSEHubRegisterClient(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go hub.Run(ctx)
 
-	client := &server.SSEClient{
+	client := &sse.Client{
 		ID:     "test-client",
-		Chan:   make(chan server.SSEEvent, 10),
+		Chan:   make(chan sse.Event, 10),
 		Ctx:    ctx,
 		Cancel: cancel,
 	}
@@ -37,15 +37,15 @@ func TestSSEHubRegisterClient(t *testing.T) {
 
 // TestSSEHubUnregisterClient tests client unregistration.
 func TestSSEHubUnregisterClient(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go hub.Run(ctx)
 
-	client := &server.SSEClient{
+	client := &sse.Client{
 		ID:     "test-client",
-		Chan:   make(chan server.SSEEvent, 10),
+		Chan:   make(chan sse.Event, 10),
 		Ctx:    ctx,
 		Cancel: cancel,
 	}
@@ -63,29 +63,29 @@ func TestSSEHubUnregisterClient(t *testing.T) {
 
 // TestSSEHubBroadcastReachesAllClients tests that broadcast reaches all clients.
 func TestSSEHubBroadcastReachesAllClients(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go hub.Run(ctx)
 
 	// Create multiple clients
-	clients := []*server.SSEClient{
+	clients := []*sse.Client{
 		{
 			ID:     "client-1",
-			Chan:   make(chan server.SSEEvent, 10),
+			Chan:   make(chan sse.Event, 10),
 			Ctx:    ctx,
 			Cancel: cancel,
 		},
 		{
 			ID:     "client-2",
-			Chan:   make(chan server.SSEEvent, 10),
+			Chan:   make(chan sse.Event, 10),
 			Ctx:    ctx,
 			Cancel: cancel,
 		},
 		{
 			ID:     "client-3",
-			Chan:   make(chan server.SSEEvent, 10),
+			Chan:   make(chan sse.Event, 10),
 			Ctx:    ctx,
 			Cancel: cancel,
 		},
@@ -119,7 +119,7 @@ func TestSSEHubBroadcastReachesAllClients(t *testing.T) {
 // TestSSEHubBroadcastDoesntBlock tests that broadcast doesn't block
 // when a client's channel is full.
 func TestSSEHubBroadcastDoesntBlock(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -127,21 +127,21 @@ func TestSSEHubBroadcastDoesntBlock(t *testing.T) {
 
 	// Create a slow client with a full channel
 	slowClientCtx, slowClientCancel := context.WithCancel(context.Background())
-	slowClient := &server.SSEClient{
+	slowClient := &sse.Client{
 		ID:     "slow-client",
-		Chan:   make(chan server.SSEEvent, 1), // Small buffer
+		Chan:   make(chan sse.Event, 1), // Small buffer
 		Ctx:    slowClientCtx,
 		Cancel: slowClientCancel,
 	}
 
 	// Fill the channel
-	slowClient.Chan <- server.SSEEvent{Type: "filler"}
+	slowClient.Chan <- sse.Event{Type: "filler"}
 
 	// Create a normal client
 	normalClientCtx, normalClientCancel := context.WithCancel(context.Background())
-	normalClient := &server.SSEClient{
+	normalClient := &sse.Client{
 		ID:     "normal-client",
-		Chan:   make(chan server.SSEEvent, 10),
+		Chan:   make(chan sse.Event, 10),
 		Ctx:    normalClientCtx,
 		Cancel: normalClientCancel,
 	}
@@ -169,15 +169,15 @@ func TestSSEHubBroadcastDoesntBlock(t *testing.T) {
 
 // TestSSEHubSendToClient tests sending to a specific client.
 func TestSSEHubSendToClient(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go hub.Run(ctx)
 
-	client := &server.SSEClient{
+	client := &sse.Client{
 		ID:     "test-client",
-		Chan:   make(chan server.SSEEvent, 10),
+		Chan:   make(chan sse.Event, 10),
 		Ctx:    ctx,
 		Cancel: cancel,
 	}
@@ -185,7 +185,7 @@ func TestSSEHubSendToClient(t *testing.T) {
 	hub.Register(client)
 	time.Sleep(10 * time.Millisecond)
 
-	event := server.SSEEvent{
+	event := sse.Event{
 		Type: "direct_message",
 		Data: map[string]string{"hello": "world"},
 	}
@@ -207,13 +207,13 @@ func TestSSEHubSendToClient(t *testing.T) {
 
 // TestSSEHubSendToNonExistentClient tests sending to a non-existent client.
 func TestSSEHubSendToNonExistentClient(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go hub.Run(ctx)
 
-	event := server.SSEEvent{
+	event := sse.Event{
 		Type: "test",
 		Data: nil,
 	}
@@ -225,19 +225,19 @@ func TestSSEHubSendToNonExistentClient(t *testing.T) {
 
 // TestSSEHubConcurrentAccess tests that the hub handles concurrent access safely.
 func TestSSEHubConcurrentAccess(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	go hub.Run(ctx)
 
 	// Create multiple clients with separate contexts
-	var clients []*server.SSEClient
+	var clients []*sse.Client
 	for i := 0; i < 5; i++ {
 		clientCtx, clientCancel := context.WithCancel(context.Background())
-		client := &server.SSEClient{
+		client := &sse.Client{
 			ID:     fmt.Sprintf("client-%d", i),
-			Chan:   make(chan server.SSEEvent, 100), // Larger buffer
+			Chan:   make(chan sse.Event, 100), // Larger buffer
 			Ctx:    clientCtx,
 			Cancel: clientCancel,
 		}

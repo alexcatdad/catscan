@@ -8,12 +8,12 @@ import (
 	"github.com/alexcatdad/catscan/internal/config"
 	"github.com/alexcatdad/catscan/internal/model"
 	"github.com/alexcatdad/catscan/internal/poller"
-	"github.com/alexcatdad/catscan/internal/server"
+	"github.com/alexcatdad/catscan/internal/sse"
 )
 
 // TestChangeDetectionNoChange tests that no changes emit no granular events.
 func TestChangeDetectionNoChange(t *testing.T) {
-	hub := server.NewSSEHub()
+	hub := sse.NewHub()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
