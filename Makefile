@@ -1,4 +1,4 @@
-.PHONY: build dev dev-backend dev-frontend test lint clean help
+.PHONY: build dev dev-backend dev-frontend test lint clean e2e test-server help
 
 # Default target
 help:
@@ -51,3 +51,13 @@ clean:
 	rm -rf ./dist
 	cd frontend && rm -rf node_modules .svelte-kit
 	@echo "Clean complete"
+
+# Run E2E tests
+e2e: build
+	@echo "Running E2E tests..."
+	cd frontend && bunx playwright test
+
+# Run test server for E2E tests
+test-server: build
+	@echo "Starting test server on port 9527..."
+	CATSCAN_TEST=1 ./bin/catscan --test

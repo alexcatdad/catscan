@@ -18,6 +18,8 @@ interface Props {
 
 const { repo }: Props = $props();
 
+let detailRef = $state<HTMLDivElement>();
+
 const completenessItems = [
 	{ key: "HasDescription", label: "Description" },
 	{ key: "HasReadme", label: "README" },
@@ -31,11 +33,11 @@ const completenessItems = [
 ];
 </script>
 
-<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+<div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" data-testid="repo-detail" bind:this={detailRef}>
 	<!-- Description -->
 	<div class="md:col-span-2">
 		<h3 class="mb-2 text-sm font-medium text-[var(--color-fg-subtle)]">Description</h3>
-		<p class="text-sm text-[var(--color-fg-base)]">
+		<p class="text-sm text-[var(--color-fg-base)]" data-testid="repo-description">
 			{#if repo.Description}
 				{repo.Description}
 			{:else}
@@ -75,7 +77,7 @@ const completenessItems = [
 	{#if repo.Topics.length > 0}
 		<div class="md:col-span-2">
 		<h3 class="mb-2 text-sm font-medium text-[var(--color-fg-subtle)]">Topics</h3>
-		<div class="flex flex-wrap gap-1">
+		<div class="flex flex-wrap gap-1" data-testid="repo-topics">
 			{#each repo.Topics as topic}
 				<span
 					class="rounded-full bg-[var(--color-bg-elevated)] px-2 py-0.5 text-xs text-[var(--color-fg-base)]"
@@ -115,7 +117,7 @@ const completenessItems = [
 	<!-- Completeness Checklist -->
 	<div class="md:col-span-2">
 		<h3 class="mb-2 text-sm font-medium text-[var(--color-fg-subtle)]">Completeness</h3>
-		<div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+		<div class="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5" data-testid="repo-completeness">
 			{#each completenessItems as item}
 				<div class="flex items-center gap-2 text-sm">
 					{#if repo.Completeness[item.key]}

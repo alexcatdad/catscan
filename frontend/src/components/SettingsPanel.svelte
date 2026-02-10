@@ -136,6 +136,7 @@
 		<div
 			class="w-full max-w-lg rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-lg"
 			onclick={(e) => e.stopPropagation()}
+			data-testid="settings-panel"
 		>
 			<div class="mb-4 flex items-center justify-between">
 				<h2 class="text-lg font-semibold text-[var(--color-fg-base)]">Settings</h2>

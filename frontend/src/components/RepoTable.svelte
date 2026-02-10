@@ -64,7 +64,7 @@
 	}
 </script>
 
-<table class="w-full border-separate border-spacing-0">
+<table class="w-full border-separate border-spacing-0" data-testid="repo-table">
 	<thead>
 		<tr class="border-b border-[var(--color-border)]">
 			<th class="w-10 px-4 py-3 text-left">
@@ -115,6 +115,7 @@
 				onclick={() => focusRow(index)}
 				onkeydown={(e) => handleKeydown(e, index)}
 				tabindex={isFocused ? 0 : -1}
+				data-testid="repo-row"
 			>
 				<!-- Checkbox -->
 				<td class="px-4 py-3">
@@ -137,6 +138,7 @@
 					<button
 						onclick={() => toggleRepoExpanded(repo.Name)}
 						class="flex items-center gap-2 font-medium text-[var(--color-accent)] hover:underline"
+						data-testid="repo-name"
 					>
 						{#if isCloning}
 							<span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[var(--color-fg-muted)] border-t-transparent"></span>

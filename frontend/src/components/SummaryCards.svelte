@@ -85,7 +85,7 @@ function clearAllFilters(): void {
 }
 </script>
 
-<div class="mb-4 flex flex-wrap items-center gap-3">
+<div class="mb-4 flex flex-wrap items-center gap-3" data-testid="summary-cards">
 	{#each statsCards() as card}
 		<button
 			onclick={() => applyFilter(card)}

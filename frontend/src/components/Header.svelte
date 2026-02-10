@@ -260,6 +260,7 @@
 			onclick={() => (showSettings = !showSettings)}
 			class="rounded-md p-2 text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-fg-base)]"
 			aria-label="Settings"
+			data-testid="settings-button"
 		>
 			<SettingsIcon size="18" />
 		</button>
@@ -267,4 +268,4 @@
 	</div>
 </header>
 
-<SettingsPanel show={showSettings} onClose={() => (showSettings = false)} />
+<SettingsPanel show={showSettings} onClose={() => (showSettings = false)} data-testid="settings-panel" />

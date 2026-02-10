@@ -1,0 +1,158 @@
+{
+  "repo/list": [
+    {
+      "name": "repo-ongoing-clean",
+      "owner": {"login": "alexcatdad"},
+      "description": "A clean repo with ongoing development",
+      "visibility": "public",
+      "isTemplate": false,
+      "fork": false,
+      "updatedAt": "2025-02-10T10:00:00Z",
+      "url": "https://github.com/alexcatdad/repo-ongoing-clean",
+      "homepageUrl": null,
+      "topics": ["go", "test"],
+      "defaultBranchRef": {
+        "name": "main",
+        "target": {
+          "oid": "abc123",
+          "commitUrl": "https://github.com/alexcatdad/repo-ongoing-clean/commit/abc123"
+        }
+      },
+      "licenseInfo": {"spdxId": "MIT"},
+      "stargazerCount": 42,
+      "forkCount": 5
+    },
+    {
+      "name": "repo-ongoing-dirty",
+      "owner": {"login": "alexcatdad"},
+      "description": "A dirty repo with uncommitted changes",
+      "visibility": "public",
+      "isTemplate": false,
+      "fork": false,
+      "updatedAt": "2025-02-09T10:00:00Z",
+      "url": "https://github.com/alexcatdad/repo-ongoing-dirty",
+      "homepageUrl": null,
+      "topics": ["typescript", "test"],
+      "defaultBranchRef": {
+        "name": "main",
+        "target": {
+          "oid": "def456",
+          "commitUrl": "https://github.com/alexcatdad/repo-ongoing-dirty/commit/def456"
+        }
+      },
+      "licenseInfo": {"spdxId": "MIT"},
+      "stargazerCount": 10,
+      "forkCount": 2
+    },
+    {
+      "name": "repo-stale",
+      "owner": {"login": "alexcatdad"},
+      "description": "A stale repository",
+      "visibility": "private",
+      "isTemplate": false,
+      "fork": false,
+      "updatedAt": "2024-11-15T10:00:00Z",
+      "url": "https://github.com/alexcatdad/repo-stale",
+      "homepageUrl": null,
+      "topics": [],
+      "defaultBranchRef": {
+        "name": "main",
+        "target": {
+          "oid": "ghi789",
+          "commitUrl": "https://github.com/alexcatdad/repo-stale/commit/ghi789"
+        }
+      },
+      "licenseInfo": null,
+      "stargazerCount": 3,
+      "forkCount": 1
+    },
+    {
+      "name": "repo-abandoned",
+      "owner": {"login": "alexcatdad"},
+      "description": "An abandoned repository",
+      "visibility": "public",
+      "isTemplate": false,
+      "fork": false,
+      "updatedAt": "2023-06-01T10:00:00Z",
+      "url": "https://github.com/alexcatdad/repo-abandoned",
+      "homepageUrl": null,
+      "topics": ["deprecated"],
+      "defaultBranchRef": {
+        "name": "main",
+        "target": {
+          "oid": "jkl012",
+          "commitUrl": "https://github.com/alexcatdad/repo-abandoned/commit/jkl012"
+        }
+      },
+      "licenseInfo": {"spdxId": "Apache-2.0"},
+      "stargazerCount": 100,
+      "forkCount": 20
+    },
+    {
+      "name": "repo-with-release",
+      "owner": {"login": "alexcatdad"},
+      "description": "A repo with releases",
+      "visibility": "public",
+      "isTemplate": false,
+      "fork": false,
+      "updatedAt": "2025-02-08T10:00:00Z",
+      "url": "https://github.com/alexcatdad/repo-with-release",
+      "homepageUrl": "https://catscan.dev",
+      "topics": ["go", "cli"],
+      "defaultBranchRef": {
+        "name": "main",
+        "target": {
+          "oid": "mno345",
+          "commitUrl": "https://github.com/alexcatdad/repo-with-release/commit/mno345"
+        }
+      },
+      "licenseInfo": {"spdxId": "MIT"},
+      "stargazerCount": 500,
+      "forkCount": 50,
+      "releases": {
+        "nodes": [
+          {
+            "name": "v1.0.0",
+            "isPrerelease": false,
+            "publishedAt": "2025-02-01T10:00:00Z",
+            "url": "https://github.com/alexcatdad/repo-with-release/releases/tag/v1.0.0"
+          }
+        ]
+      }
+    },
+    {
+      "name": "repo-with-failing-ci",
+      "owner": {"login": "alexcatdad"},
+      "description": "A repo with failing CI",
+      "visibility": "public",
+      "isTemplate": false,
+      "fork": false,
+      "updatedAt": "2025-02-10T09:00:00Z",
+      "url": "https://github.com/alexcatdad/repo-with-failing-ci",
+      "homepageUrl": null,
+      "topics": ["broken"],
+      "defaultBranchRef": {
+        "name": "main",
+        "target": {
+          "oid": "pqr678",
+          "commitUrl": "https://github.com/alexcatdad/repo-with-failing-ci/commit/pqr678"
+        }
+      },
+      "licenseInfo": null,
+      "stargazerCount": 1,
+      "forkCount": 0,
+      "defaultBranchRef": {
+        "name": "main",
+        "target": {
+          "oid": "pqr678",
+          "commitUrl": "https://github.com/alexcatdad/repo-with-failing-ci/commit/pqr678",
+          "status": {
+            "state": "FAILURE",
+            "context": "CI",
+            "description": "The build failed"
+          }
+        }
+      }
+    }
+  ]
+}
