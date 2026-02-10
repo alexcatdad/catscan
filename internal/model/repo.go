@@ -115,7 +115,7 @@ func (r *Repo) ComputeLifecycle(thresholds LifecycleThresholds) Lifecycle {
 	}
 
 	// 3. Active CI (passing or failing) indicates ongoing work
-	if r.ActionsStatus != ActionsStatusNone {
+	if r.ActionsStatus != "" && r.ActionsStatus != ActionsStatusNone {
 		return LifecycleOngoing
 	}
 
