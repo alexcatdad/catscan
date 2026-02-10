@@ -9,7 +9,7 @@
 		setSort,
 		sort,
 		filters,
-	} from "$lib/store";
+	} from "$lib/store.svelte";
 
 	const lifecycleOptions: { value: Lifecycle; label: string }[] = [
 		{ value: "ongoing", label: "Ongoing" },
@@ -47,49 +47,49 @@
 
 	function setLifecycleFilter(value: string) {
 		if (value === "") {
-			const { lifecycle, ...rest } = filters;
+			const { lifecycle, ...rest } = filters();
 			setFilters(rest);
 		} else {
-			setFilters({ ...filters, lifecycle: value });
+			setFilters({ ...filters(), lifecycle: value });
 		}
 		showFilterMenu = false;
 	}
 
 	function setVisibilityFilter(value: string) {
 		if (value === "") {
-			const { visibility, ...rest } = filters;
+			const { visibility, ...rest } = filters();
 			setFilters(rest);
 		} else {
-			setFilters({ ...filters, visibility: value });
+			setFilters({ ...filters(), visibility: value });
 		}
 		showFilterMenu = false;
 	}
 
 	function setClonedFilter(value: boolean | undefined) {
 		if (value === undefined) {
-			const { cloned, ...rest } = filters;
+			const { cloned, ...rest } = filters();
 			setFilters(rest);
 		} else {
-			setFilters({ ...filters, cloned: value });
+			setFilters({ ...filters(), cloned: value });
 		}
 		showFilterMenu = false;
 	}
 
 	function setSortField(field: SortOptions["field"]) {
-		setSort({ ...sort, field });
+		setSort({ ...sort(), field });
 		showSortMenu = false;
 	}
 
 	function toggleSortOrder() {
-		setSort({ ...sort, order: sort.order === "asc" ? "desc" : "asc" });
+		setSort({ ...sort(), order: sort().order === "asc" ? "desc" : "asc" });
 	}
 
 	function hasActiveFilters(): boolean {
-		return Object.keys(filters).length > 0;
+		return Object.keys(filters()).length > 0;
 	}
 
 	const activeFilterCount = $derived(
-		Object.keys(filters).filter((k) => filters[k as keyof FilterOptions] !== undefined).length
+		Object.keys(filters()).filter((k) => filters()[k as keyof FilterOptions] !== undefined).length
 	);
 </script>
 
@@ -219,8 +219,8 @@
 				onclick={() => (showSortMenu = !showSortMenu)}
 				class="flex items-center gap-2 rounded-md border border-[var(--color-border)] px-3 py-1.5 text-sm text-[var(--color-fg-base)] hover:bg-[var(--color-bg-elevated)]"
 			>
-				Sort: {sortFieldOptions.find((o) => o.value === sort.field)?.label}
-				{#if sort.order === "asc"}
+				Sort: {sortFieldOptions.find((o) => o.value === sort().field)?.label}
+				{#if sort().order === "asc"}
 					↑
 				{:else}
 					↓
@@ -249,7 +249,7 @@
 						role="menuitem"
 					>
 						<span>Reverse</span>
-						<span class="text-[var(--color-fg-muted)]">{sort.order === "asc" ? "↓" : "↑"}</span>
+						<span class="text-[var(--color-fg-muted)]">{sort().order === "asc" ? "↓" : "↑"}</span>
 					</button>
 				</div>
 			{/if}

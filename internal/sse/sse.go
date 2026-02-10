@@ -199,10 +199,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		Data: map[string]string{"clientId": h.client.ID},
 	}, flusher)
 
-	// Listen for client disconnect
+	// Cancel client context when HTTP request disconnects
 	go func() {
-		<-r.Context().Done()
-		<-h.client.Ctx.Done()
+		select {
+		case <-r.Context().Done():
+			h.client.Cancel()
+		case <-h.client.Ctx.Done():
+			// Client was cancelled externally (e.g., hub shutdown)
+		}
 	}()
 
 	// Listen for events from hub and send to client

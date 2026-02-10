@@ -121,6 +121,12 @@ export class SSEClient {
 			return; // Already scheduled
 		}
 
+		// Close stale EventSource so connect() doesn't bail early
+		if (this.eventSource) {
+			this.eventSource.close();
+			this.eventSource = null;
+		}
+
 		this.reconnectTimer = setTimeout(() => {
 			this.reconnectTimer = null;
 			this.connect();

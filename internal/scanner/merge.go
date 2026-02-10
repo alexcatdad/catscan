@@ -51,17 +51,30 @@ func Merge(
 
 		if hasGitHub {
 			// Identity
-			repo.FullName = fmt.Sprintf("%s/%s", ghRepo.PrimaryLanguage.Name, name)
+			if ghRepo.PrimaryLanguage != nil {
+				repo.FullName = fmt.Sprintf("%s/%s", ghRepo.PrimaryLanguage.Name, name)
+				repo.Language = ghRepo.PrimaryLanguage.Name
+			} else {
+				repo.FullName = name
+			}
 			repo.Visibility = parseVisibility(ghRepo.Visibility)
 			repo.Description = ghRepo.Description
 			repo.HomepageURL = ghRepo.HomepageURL
-			if ghRepo.PrimaryLanguage != nil {
-				repo.Language = ghRepo.PrimaryLanguage.Name
-			}
 			if ghRepo.Topics != nil {
 				repo.Topics = ghRepo.Topics
 			}
 			repo.HasPages = ghRepo.HasPages
+
+			// Activity data from per-repo GitHub fetches
+			repo.OpenPRs = ghRepo.OpenPRs
+			repo.ActionsStatus = model.ActionsStatus(ghRepo.ActionsStatus)
+			if ghRepo.FilePresence != nil {
+				repo.HasREADME = ghRepo.FilePresence.HasREADME
+				repo.HasLicense = ghRepo.FilePresence.HasLICENSE
+				repo.HasCLAUDEmd = ghRepo.FilePresence.HasCLAUDEmd
+				repo.HasAGENTSmd = ghRepo.FilePresence.HasAGENTSmd
+				repo.HasProjectJson = ghRepo.FilePresence.HasProjectJson
+			}
 
 			// Release info
 			if ghRepo.LatestRelease != nil {

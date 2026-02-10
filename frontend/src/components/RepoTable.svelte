@@ -20,7 +20,7 @@
 		isRepoCloning,
 		cloneSelected,
 		canClone,
-	} from "$lib/store";
+	} from "$lib/store.svelte";
 	import { formatRelativeTime, getLifecycleColor, getVisibilityColor, getCIStatusColor, getCompletenessIssues } from "$lib/utils";
 
 	let tableBody = $state<HTMLTableSectionElement>();
@@ -244,15 +244,15 @@
 </table>
 
 <!-- Action bar for cloning -->
-{#if selectedRepos.size > 0}
+{#if selectedRepos().size > 0}
 	<div class="fixed bottom-0 left-0 right-0 border-t border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-3 shadow-lg">
 		<div class="flex items-center justify-between">
 			<div class="text-sm text-[var(--color-fg-base)]">
-				{selectedRepos.size} repo{selectedRepos.size === 1 ? "" : "s"} selected
+				{selectedRepos().size} repo{selectedRepos().size === 1 ? "" : "s"} selected
 			</div>
 			<button
 				onclick={cloneSelected}
-				disabled={!canClone}
+				disabled={!canClone()}
 				class="flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-bg-base)] hover:bg-[var(--color-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
 			>
 				<DownloadIcon size="16" />

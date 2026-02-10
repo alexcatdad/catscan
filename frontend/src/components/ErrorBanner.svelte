@@ -1,10 +1,10 @@
 <!-- Error banner for GitHub CLI issues -->
 <script lang="ts">
 	import { AlertTriangleIcon, XIcon } from "svelte-feather-icons";
-	import { ghError, dismissGHError } from "$lib/store";
+	import { ghError, dismissGHError } from "$lib/store.svelte";
 </script>
 
-{#if ghError}
+{#if ghError()}
 	<div class="border-b border-[var(--color-error)] bg-[var(--color-error)]/10 px-4 py-3">
 		<div class="flex items-start gap-3">
 			<div class="mt-0.5 text-[var(--color-error)]">
@@ -13,7 +13,7 @@
 			<div class="flex-1">
 				<p class="font-medium text-[var(--color-error)]">GitHub CLI Error</p>
 				<p class="mt-1 text-sm text-[var(--color-fg-base)]">
-					{ghError.message}
+					{ghError()?.message}
 				</p>
 			</div>
 			<button

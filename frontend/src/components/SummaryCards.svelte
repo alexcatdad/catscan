@@ -1,16 +1,17 @@
 <!-- Summary stat cards that act as filters -->
 <script lang="ts">
-import { clearFilters, filters, setFilters, summaryStats } from "$lib/store";
+import type { FilterOptions } from "$lib/types";
+import { clearFilters, filters, setFilters, summaryStats } from "$lib/store.svelte";
 
 interface StatCard {
 	key: string;
 	label: string;
 	count: number;
-	filterKey?: keyof typeof filters;
+	filterKey?: keyof FilterOptions;
 	filterValue?: string | boolean;
 }
 
-const statsCards = $derived(() => {
+const statsCards = $derived.by(() => {
 	const stats = summaryStats();
 	const cards: StatCard[] = [
 		{ key: "total", label: "Total", count: stats.total },
@@ -63,20 +64,21 @@ const statsCards = $derived(() => {
 
 function isActive(card: StatCard): boolean {
 	if (!card.filterKey) return false;
-	return filters[card.filterKey] === card.filterValue;
+	return filters()[card.filterKey] === card.filterValue;
 }
 
 function applyFilter(card: StatCard): void {
 	if (!card.filterKey) return;
 
-	const currentValue = filters[card.filterKey];
+	const currentFilters = filters();
+	const currentValue = currentFilters[card.filterKey];
 	if (currentValue === card.filterValue) {
 		// Toggle off - clear this filter
-		const { [card.filterKey]: _, ...rest } = filters;
+		const { [card.filterKey]: _, ...rest } = currentFilters;
 		setFilters(rest);
 	} else {
 		// Apply this filter
-		setFilters({ ...filters, [card.filterKey]: card.filterValue });
+		setFilters({ ...currentFilters, [card.filterKey]: card.filterValue });
 	}
 }
 
@@ -86,7 +88,7 @@ function clearAllFilters(): void {
 </script>
 
 <div class="mb-4 flex flex-wrap items-center gap-3" data-testid="summary-cards">
-	{#each statsCards() as card}
+	{#each statsCards as card}
 		<button
 			onclick={() => applyFilter(card)}
 			class="group relative flex min-w-[100px] flex-1 items-center justify-between rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2 text-left transition-colors hover:border-[var(--color-accent)] {isActive(card)
@@ -102,7 +104,7 @@ function clearAllFilters(): void {
 		</button>
 	{/each}
 
-	{#if Object.keys(filters).length > 0}
+	{#if Object.keys(filters()).length > 0}
 		<button
 			onclick={clearAllFilters}
 			class="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-fg-base)]"

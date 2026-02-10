@@ -103,6 +103,11 @@ type GitHubRepo struct {
 	HasPages        bool             `json:"hasPages"`
 	DefaultBranch   *DefaultBranch   `json:"defaultBranchRef"`
 	LatestRelease   *LatestRelease   `json:"latestRelease"`
+
+	// Per-repo data fetched separately (not from gh repo list JSON)
+	OpenPRs       int           `json:"-"`
+	ActionsStatus string        `json:"-"`
+	FilePresence  *FilePresence `json:"-"`
 }
 
 // PrimaryLanguage represents the primary programming language.

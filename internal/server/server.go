@@ -15,6 +15,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"sort"
 	"strings"
 	"sync"
 	"syscall"
@@ -76,9 +77,11 @@ func (s *Server) Start() error {
 	// Create HTTP server
 	mux := http.NewServeMux()
 	s.server = &http.Server{
-		Handler:      s.withHeaders(mux),
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		Handler:     s.withHeaders(mux),
+		ReadTimeout: 15 * time.Second,
+		// WriteTimeout must be 0 for SSE — a non-zero value kills
+		// long-lived connections after the timeout elapses.
+		WriteTimeout: 0,
 		IdleTimeout:  60 * time.Second,
 	}
 
@@ -173,6 +176,9 @@ func (s *Server) setupRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/api/config", s.handleConfig)
 	mux.HandleFunc("/api/health", s.handleHealth)
 	mux.HandleFunc("/api/events", s.handleEvents)
+
+	// Static file serving for the Svelte frontend (dist/ directory)
+	mux.Handle("/", http.FileServer(http.Dir(s.distDir)))
 }
 
 // handleReposList handles GET /api/repos with filtering and sorting.
@@ -336,8 +342,8 @@ func (s *Server) handlePutConfig(w http.ResponseWriter, r *http.Request) {
 	s.cfg = &newCfg
 	s.mu.Unlock()
 
-	// Note: In a full implementation, we'd restart pollers here
-	// and trigger an immediate re-scan if the scan path changed
+	// Notify connected clients that config changed
+	s.hub.Broadcast("config_updated", newCfg)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(newCfg)
@@ -504,80 +510,35 @@ func (s *Server) sortRepos(repos []model.Repo, query url.Values) []model.Repo {
 		order = "asc"
 	}
 
-	// Sort the slice
+	// Sort using stdlib sort.Slice
+	sorted := make([]model.Repo, len(repos))
+	copy(sorted, repos)
+
+	desc := order == "desc"
 	switch sortField {
 	case "name":
-		slice := make([]model.Repo, len(repos))
-		copy(slice, repos)
-		if order == "asc" {
-			// A-Z
-			for i := 0; i < len(slice)-1; i++ {
-				for j := i + 1; j < len(slice); j++ {
-					if slice[j].Name < slice[i].Name {
-						slice[i], slice[j] = slice[j], slice[i]
-					}
-				}
+		sort.Slice(sorted, func(i, j int) bool {
+			if desc {
+				return sorted[i].Name > sorted[j].Name
 			}
-		} else {
-			// Z-A
-			for i := 0; i < len(slice)-1; i++ {
-				for j := i + 1; j < len(slice); j++ {
-					if slice[j].Name > slice[i].Name {
-						slice[i], slice[j] = slice[j], slice[i]
-					}
-				}
-			}
-		}
-		repos = slice
+			return sorted[i].Name < sorted[j].Name
+		})
 	case "lastUpdate":
-		// Sort by GitHub last push date
-		slice := make([]model.Repo, len(repos))
-		copy(slice, repos)
-		if order == "asc" {
-			// Oldest first
-			for i := 0; i < len(slice)-1; i++ {
-				for j := i + 1; j < len(slice); j++ {
-					if slice[j].GitHubLastPush.Before(slice[i].GitHubLastPush) {
-						slice[i], slice[j] = slice[j], slice[i]
-					}
-				}
+		sort.Slice(sorted, func(i, j int) bool {
+			if desc {
+				return sorted[i].GitHubLastPush.After(sorted[j].GitHubLastPush)
 			}
-		} else {
-			// Newest first
-			for i := 0; i < len(slice)-1; i++ {
-				for j := i + 1; j < len(slice); j++ {
-					if slice[j].GitHubLastPush.After(slice[i].GitHubLastPush) {
-						slice[i], slice[j] = slice[j], slice[i]
-					}
-				}
-			}
-		}
-		repos = slice
+			return sorted[i].GitHubLastPush.Before(sorted[j].GitHubLastPush)
+		})
 	case "lifecycle":
-		// Sort by lifecycle status
-		slice := make([]model.Repo, len(repos))
-		copy(slice, repos)
-		if order == "asc" {
-			// Smallest lifecycle first (ongoing < stale < maintenance < abandoned)
-			for i := 0; i < len(slice)-1; i++ {
-				for j := i + 1; j < len(slice); j++ {
-					if slice[j].Lifecycle < slice[i].Lifecycle {
-						slice[i], slice[j] = slice[j], slice[i]
-					}
-				}
+		sort.Slice(sorted, func(i, j int) bool {
+			if desc {
+				return sorted[i].Lifecycle > sorted[j].Lifecycle
 			}
-		} else {
-			// Largest lifecycle first
-			for i := 0; i < len(slice)-1; i++ {
-				for j := i + 1; j < len(slice); j++ {
-					if slice[j].Lifecycle > slice[i].Lifecycle {
-						slice[i], slice[j] = slice[j], slice[i]
-					}
-				}
-			}
-		}
-		repos = slice
+			return sorted[i].Lifecycle < sorted[j].Lifecycle
+		})
 	}
+	repos = sorted
 
 	return repos
 }

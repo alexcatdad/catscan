@@ -232,21 +232,21 @@ func (p *Poller) githubPoll(ctx context.Context) {
 		if err != nil {
 			log.Printf("error getting PRs for %s: %v", repo.Name, err)
 		}
-		_ = prCount // Will be used when we extend the merge
+		repo.OpenPRs = prCount
 
 		// Get Actions status
 		actionsStatus, err := scanner.GetActionsStatus(p.cfg.GitHubOwner, repo.Name)
 		if err != nil {
 			log.Printf("error getting Actions status for %s: %v", repo.Name, err)
 		}
-		_ = actionsStatus // Will be used when we extend the merge
+		repo.ActionsStatus = actionsStatus
 
 		// Get file presence
 		filePresence, err := scanner.GetFilePresence(p.cfg.GitHubOwner, repo.Name)
 		if err != nil {
 			log.Printf("error getting file presence for %s: %v", repo.Name, err)
 		}
-		_ = filePresence // Will be used when we extend the merge
+		repo.FilePresence = filePresence
 	}
 
 	// Merge data
