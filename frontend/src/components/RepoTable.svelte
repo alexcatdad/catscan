@@ -64,200 +64,223 @@
 	}
 </script>
 
-<table class="w-full border-separate border-spacing-0" data-testid="repo-table">
-	<thead>
-		<tr class="border-b border-[var(--color-border)]">
-			<th class="w-10 px-4 py-3 text-left">
-				<input
-					type="checkbox"
-					disabled
-					class="pointer-events-none opacity-0"
-					aria-label="Select all"
-				/>
-			</th>
-			<th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)]">
-				Repository
-			</th>
-			<th class="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)] md:table-cell">
-				Visibility
-			</th>
-			<th class="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)] lg:table-cell">
-				Branch
-			</th>
-			<th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)]">
-				CI
-			</th>
-			<th class="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)] sm:table-cell">
-				Complete
-			</th>
-			<th class="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)] sm:table-cell">
-				Updated
-			</th>
-			<th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)]">
-				Status
-			</th>
-		</tr>
-	</thead>
-	<tbody bind:this={tableBody}>
-		{#each filteredRepos() as repo, index}
-			{@const isExpanded = isRepoExpanded(repo.Name)}
-			{@const isSelected = isRepoSelected(repo.Name)}
-			{@const isCloning = isRepoCloning(repo.Name)}
-			{@const issues = getCompletenessIssues(repo.Completeness)}
-			{@const isFocused = focusedIndex === index}
-
-			<tr
-				class="group border-b border-[var(--color-border-subtle)] hover:bg-[var(--color-bg-elevated)] {isFocused
-					? 'bg-[var(--color-bg-elevated)]'
-					: ''} {isSelected
-					? 'bg-[var(--color-accent)]/5'
-					: ''}"
-				onclick={() => focusRow(index)}
-				onkeydown={(e) => handleKeydown(e, index)}
-				tabindex={isFocused ? 0 : -1}
-				data-testid="repo-row"
-			>
-				<!-- Checkbox -->
-				<td class="px-4 py-3">
-					{#if repo.Cloned}
-						<div class="h-4 w-4"></div>
-					{:else}
-						<input
-							type="checkbox"
-							checked={isSelected}
-							onchange={() => toggleRepoSelection(repo.Name)}
-							onclick={(e) => e.stopPropagation()}
-							class="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-bg-surface)] accent-[var(--color-accent)]"
-							aria-label="Select {repo.Name}"
-						/>
-					{/if}
-				</td>
-
-				<!-- Repo name -->
-				<td class="max-w-[200px] px-4 py-3">
-					<button
-						onclick={() => toggleRepoExpanded(repo.Name)}
-						class="flex items-center gap-2 font-medium text-[var(--color-accent)] hover:underline"
-						data-testid="repo-name"
-					>
-						{#if isCloning}
-							<span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[var(--color-fg-muted)] border-t-transparent"></span>
-						{/if}
-						<span class="truncate">{repo.Name}</span>
-					</button>
-					{#if repo.Language}
-						<span class="text-xs text-[var(--color-fg-subtle)]">{repo.Language}</span>
-					{/if}
-				</td>
-
-				<!-- Visibility badge -->
-				<td class="hidden px-4 py-3 md:table-cell">
-					<span
-						class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {getVisibilityColor(
-							repo.Visibility
-						)} bg-current/10"
-					>
-						{repo.Visibility}
-					</span>
-				</td>
-
-				<!-- Branch -->
-				<td class="hidden px-4 py-3 text-sm text-[var(--color-fg-muted)] lg:table-cell">
-					{#if repo.Cloned}
-						<div class="flex items-center gap-1">
-							<TerminalIcon size="12" />
-							<span class="font-mono text-xs">{repo.Branch}</span>
-							{#if repo.Dirty}
-								<span class="rounded bg-[var(--color-warning)] px-1 text-xs text-[var(--color-bg-base)]">
-									dirty
-								</span>
-							{/if}
-						</div>
-					{:else}
-						<span class="text-[var(--color-fg-subtle)]">—</span>
-					{/if}
-				</td>
-
-				<!-- CI Status -->
-				<td class="px-4 py-3">
-					<div
-						class="h-2.5 w-2.5 rounded-full {getCIStatusColor(repo.ActionsStatus)}"
-						title={repo.ActionsStatus}
-					></div>
-				</td>
-
-				<!-- Completeness indicators -->
-				<td class="hidden px-4 py-3 sm:table-cell">
-					{#if issues.length > 0}
-						<div class="flex items-center gap-1" title={`Missing: ${issues.join(", ")}`}>
-							{#if issues.includes("description")}
-								<AlertCircleIcon size="14" class="text-[var(--color-warning)]" />
-							{/if}
-							{#if issues.includes("README")}
-								<FileTextIcon size="14" class="text-[var(--color-warning)]" />
-							{/if}
-							{#if issues.length > 2}
-								<span class="text-xs text-[var(--color-fg-subtle)]">+{issues.length - 2}</span>
-							{/if}
-						</div>
-					{:else}
-						<span class="text-[var(--color-success)]">✓</span>
-					{/if}
-				</td>
-
-				<!-- Last update -->
-				<td class="hidden px-4 py-3 text-sm text-[var(--color-fg-muted)] sm:table-cell">
-					{formatRelativeTime(repo.GitHubLastPush)}
-				</td>
-
-				<!-- Lifecycle badge -->
-				<td class="px-4 py-3">
-					<span
-						class="inline-flex items-center rounded px-2 py-0.5 text-xs font-medium uppercase {getLifecycleColor(
-							repo.Lifecycle
-						)}"
-					>
-						{repo.Lifecycle}
-					</span>
-				</td>
+<div class="table-container overflow-hidden rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-surface)]/40">
+	<table class="w-full border-separate border-spacing-0" data-testid="repo-table">
+		<thead>
+			<tr>
+				<th class="w-10 border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm">
+					<input
+						type="checkbox"
+						disabled
+						class="pointer-events-none opacity-0"
+						aria-label="Select all"
+					/>
+				</th>
+				<th class="border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm">
+					<span class="font-[var(--font-mono)] text-[10px] uppercase tracking-widest text-[var(--color-fg-subtle)]">Repository</span>
+				</th>
+				<th class="hidden border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm md:table-cell">
+					<span class="font-[var(--font-mono)] text-[10px] uppercase tracking-widest text-[var(--color-fg-subtle)]">Visibility</span>
+				</th>
+				<th class="hidden border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm lg:table-cell">
+					<span class="font-[var(--font-mono)] text-[10px] uppercase tracking-widest text-[var(--color-fg-subtle)]">Branch</span>
+				</th>
+				<th class="border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm">
+					<span class="font-[var(--font-mono)] text-[10px] uppercase tracking-widest text-[var(--color-fg-subtle)]">CI</span>
+				</th>
+				<th class="hidden border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm sm:table-cell">
+					<span class="font-[var(--font-mono)] text-[10px] uppercase tracking-widest text-[var(--color-fg-subtle)]">Complete</span>
+				</th>
+				<th class="hidden border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm sm:table-cell">
+					<span class="font-[var(--font-mono)] text-[10px] uppercase tracking-widest text-[var(--color-fg-subtle)]">Updated</span>
+				</th>
+				<th class="border-b border-[var(--color-border)] bg-[var(--color-bg-surface)]/80 px-4 py-3 text-left backdrop-blur-sm">
+					<span class="font-[var(--font-mono)] text-[10px] uppercase tracking-widest text-[var(--color-fg-subtle)]">Status</span>
+				</th>
 			</tr>
+		</thead>
+		<tbody bind:this={tableBody}>
+			{#each filteredRepos() as repo, index}
+				{@const isExpanded = isRepoExpanded(repo.Name)}
+				{@const isSelected = isRepoSelected(repo.Name)}
+				{@const isCloning = isRepoCloning(repo.Name)}
+				{@const issues = getCompletenessIssues(repo.Completeness)}
+				{@const isFocused = focusedIndex === index}
 
-			<!-- Expanded row detail -->
-			{#if isExpanded}
-				<tr class="border-b border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)]">
-					<td colspan="8" class="p-4">
-						<RepoDetail {repo} />
+				<tr
+					class="repo-row group border-b border-[var(--color-border-subtle)] transition-colors
+						{isFocused ? 'bg-[var(--color-bg-elevated)]/60' : ''}
+						{isSelected ? 'bg-[var(--color-accent)]/5' : ''}
+						{isExpanded ? 'bg-[var(--color-accent)]/3' : ''}"
+					onclick={() => focusRow(index)}
+					onkeydown={(e) => handleKeydown(e, index)}
+					tabindex={isFocused ? 0 : -1}
+					data-testid="repo-row"
+				>
+					<!-- Checkbox -->
+					<td class="px-4 py-3">
+						{#if repo.Cloned}
+							<div class="h-4 w-4"></div>
+						{:else}
+							<input
+								type="checkbox"
+								checked={isSelected}
+								onchange={() => toggleRepoSelection(repo.Name)}
+								onclick={(e) => e.stopPropagation()}
+								class="h-4 w-4 rounded border-[var(--color-border)] bg-[var(--color-bg-base)] accent-[var(--color-accent)]"
+								aria-label="Select {repo.Name}"
+							/>
+						{/if}
+					</td>
+
+					<!-- Repo name -->
+					<td class="max-w-[220px] px-4 py-3">
+						<button
+							onclick={() => toggleRepoExpanded(repo.Name)}
+							class="repo-name inline-flex items-center gap-2 rounded-md px-1.5 py-0.5 -ml-1.5 transition-colors hover:bg-[var(--color-accent)]/10"
+							data-testid="repo-name"
+						>
+							{#if isCloning}
+								<span class="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[var(--color-fg-muted)] border-t-[var(--color-accent)]"></span>
+							{/if}
+							<span class="truncate font-[var(--font-mono)] text-sm font-medium text-[var(--color-accent)]">{repo.Name}</span>
+						</button>
+						{#if repo.Language}
+							<span class="ml-1.5 text-xs text-[var(--color-fg-subtle)]">{repo.Language}</span>
+						{/if}
+					</td>
+
+					<!-- Visibility -->
+					<td class="hidden px-4 py-3 md:table-cell">
+						<span class="font-[var(--font-mono)] text-xs text-[var(--color-fg-subtle)]">
+							{repo.Visibility}
+						</span>
+					</td>
+
+					<!-- Branch -->
+					<td class="hidden px-4 py-3 lg:table-cell">
+						{#if repo.Cloned}
+							<div class="flex items-center gap-1.5">
+								<TerminalIcon size="11" class="text-[var(--color-fg-subtle)]" />
+								<span class="font-[var(--font-mono)] text-xs text-[var(--color-fg-muted)]">{repo.Branch}</span>
+								{#if repo.Dirty}
+									<span class="inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-warning)]" title="Dirty"></span>
+								{/if}
+							</div>
+						{:else}
+							<span class="text-xs text-[var(--color-fg-subtle)]">—</span>
+						{/if}
+					</td>
+
+					<!-- CI Status -->
+					<td class="px-4 py-3">
+						<div
+							class="ci-dot h-2 w-2 rounded-full {getCIStatusColor(repo.ActionsStatus)}"
+							title={repo.ActionsStatus}
+						></div>
+					</td>
+
+					<!-- Completeness -->
+					<td class="hidden px-4 py-3 sm:table-cell">
+						{#if issues.length > 0}
+							<div class="flex items-center gap-1.5" title={`Missing: ${issues.join(", ")}`}>
+								{#if issues.includes("description")}
+									<AlertCircleIcon size="13" class="text-[var(--color-warning)]/70" />
+								{/if}
+								{#if issues.includes("README")}
+									<FileTextIcon size="13" class="text-[var(--color-warning)]/70" />
+								{/if}
+								{#if issues.length > 2}
+									<span class="font-[var(--font-mono)] text-[10px] text-[var(--color-fg-subtle)]">+{issues.length - 2}</span>
+								{/if}
+							</div>
+						{:else}
+							<span class="font-[var(--font-mono)] text-xs text-[var(--color-success)]">OK</span>
+						{/if}
+					</td>
+
+					<!-- Last update -->
+					<td class="hidden px-4 py-3 sm:table-cell">
+						<span class="font-[var(--font-mono)] text-xs tabular-nums text-[var(--color-fg-subtle)]">
+							{formatRelativeTime(repo.GitHubLastPush)}
+						</span>
+					</td>
+
+					<!-- Lifecycle badge -->
+					<td class="px-4 py-3">
+						<span class="lifecycle-badge inline-flex items-center gap-1.5 font-[var(--font-mono)] text-[11px] uppercase tracking-wider {getLifecycleColor(repo.Lifecycle)}">
+							<span class="inline-block h-1.5 w-1.5 rounded-full bg-current"></span>
+							{repo.Lifecycle}
+						</span>
+					</td>
+				</tr>
+
+				<!-- Expanded row detail -->
+				{#if isExpanded}
+					<tr class="border-b border-[var(--color-border-subtle)]">
+						<td colspan="8" class="bg-[var(--color-bg-base)]/50 p-0">
+							<div class="detail-panel p-5">
+								<RepoDetail {repo} />
+							</div>
+						</td>
+					</tr>
+				{/if}
+			{/each}
+
+			{#if filteredRepos().length === 0}
+				<tr>
+					<td colspan="8" class="px-4 py-16 text-center">
+						<p class="font-[var(--font-mono)] text-sm text-[var(--color-fg-muted)]">No repositories found</p>
+						<p class="mt-2 text-xs text-[var(--color-fg-subtle)]">Try adjusting your filters</p>
 					</td>
 				</tr>
 			{/if}
-		{/each}
-
-		{#if filteredRepos().length === 0}
-			<tr>
-				<td colspan="8" class="px-4 py-12 text-center text-[var(--color-fg-muted)]">
-					<p class="text-lg">No repositories found</p>
-					<p class="mt-1 text-sm">Try adjusting your filters</p>
-				</td>
-			</tr>
-		{/if}
-	</tbody>
-</table>
+		</tbody>
+	</table>
+</div>
 
 <!-- Action bar for cloning -->
 {#if selectedRepos().size > 0}
-	<div class="fixed bottom-0 left-0 right-0 border-t border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-3 shadow-lg">
-		<div class="flex items-center justify-between">
-			<div class="text-sm text-[var(--color-fg-base)]">
-				{selectedRepos().size} repo{selectedRepos().size === 1 ? "" : "s"} selected
+	<div class="clone-bar fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--color-border)] bg-[var(--color-bg-surface)]/90 px-6 py-3 shadow-2xl shadow-black/40 backdrop-blur-md">
+		<div class="mx-auto flex max-w-[1400px] items-center justify-between">
+			<div class="font-[var(--font-mono)] text-sm text-[var(--color-fg-muted)]">
+				<span class="text-[var(--color-accent)]">{selectedRepos().size}</span>
+				repo{selectedRepos().size === 1 ? "" : "s"} selected
 			</div>
 			<button
 				onclick={cloneSelected}
 				disabled={!canClone()}
-				class="flex items-center gap-2 rounded-md bg-[var(--color-accent)] px-4 py-2 text-sm font-medium text-[var(--color-bg-base)] hover:bg-[var(--color-accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+				class="flex items-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 py-2 font-[var(--font-mono)] text-sm font-medium text-[var(--color-bg-base)] shadow-[0_0_20px_oklch(0.72_0.14_192/0.2)] transition-all hover:bg-[var(--color-accent-hover)] disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
 			>
-				<DownloadIcon size="16" />
-				Clone Selected
+				<DownloadIcon size="14" />
+				Clone
 			</button>
 		</div>
 	</div>
 {/if}
+
+<style>
+	.repo-row:hover {
+		background-color: oklch(0.16 0.018 265 / 0.6);
+	}
+
+	.repo-row:hover .repo-name span {
+		text-decoration: none;
+	}
+
+	.ci-dot[class*="bg-[var(--color-success)]"] {
+		box-shadow: 0 0 6px oklch(0.68 0.16 155 / 0.4);
+	}
+
+	.ci-dot[class*="bg-[var(--color-error)]"] {
+		box-shadow: 0 0 6px oklch(0.62 0.19 22 / 0.4);
+	}
+
+	.detail-panel {
+		animation: fade-in 0.2s ease-out;
+	}
+
+	.clone-bar {
+		animation: slide-up 0.2s ease-out;
+	}
+</style>

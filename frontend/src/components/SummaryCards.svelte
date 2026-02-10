@@ -87,29 +87,28 @@ function clearAllFilters(): void {
 }
 </script>
 
-<div class="mb-4 flex flex-wrap items-center gap-3" data-testid="summary-cards">
+<div class="mb-6 flex flex-wrap items-center gap-2" data-testid="summary-cards">
 	{#each statsCards as card}
 		<button
 			onclick={() => applyFilter(card)}
-			class="group relative flex min-w-[100px] flex-1 items-center justify-between rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] px-4 py-2 text-left transition-colors hover:border-[var(--color-accent)] {isActive(card)
-				? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10'
-				: ''}"
+			class="stat-card group relative flex items-center gap-3 rounded-lg border px-4 py-2.5 transition-all duration-200
+				{isActive(card)
+					? 'border-[var(--color-accent)]/50 bg-[var(--color-accent)]/8 shadow-[0_0_16px_oklch(0.72_0.14_192/0.1)]'
+					: 'border-[var(--color-border-subtle)] bg-[var(--color-bg-surface)]/60 hover:border-[var(--color-border)] hover:bg-[var(--color-bg-surface)]'}"
 		>
-			<span class="text-sm text-[var(--color-fg-muted)] group-hover:text-[var(--color-fg-base)]">{card.label}</span>
-			<span class="text-lg font-semibold text-[var(--color-fg-base)]">{card.count}</span>
-
-			{#if isActive(card)}
-				<span class="absolute right-1 top-1 h-2 w-2 rounded-full bg-[var(--color-accent)]"></span>
-			{/if}
+			<span class="font-[var(--font-mono)] text-xs uppercase tracking-wider text-[var(--color-fg-subtle)] transition-colors group-hover:text-[var(--color-fg-muted)]
+				{isActive(card) ? '!text-[var(--color-accent)]' : ''}">{card.label}</span>
+			<span class="font-[var(--font-mono)] text-lg font-medium tabular-nums text-[var(--color-fg-base)]
+				{isActive(card) ? '!text-[var(--color-accent)]' : ''}">{card.count}</span>
 		</button>
 	{/each}
 
 	{#if Object.keys(filters()).length > 0}
 		<button
 			onclick={clearAllFilters}
-			class="rounded-md border border-[var(--color-border)] px-3 py-2 text-sm text-[var(--color-fg-muted)] hover:bg-[var(--color-bg-elevated)] hover:text-[var(--color-fg-base)]"
+			class="rounded-lg border border-[var(--color-border-subtle)] px-3 py-2 font-[var(--font-mono)] text-xs text-[var(--color-fg-subtle)] transition-all hover:border-[var(--color-error)]/30 hover:text-[var(--color-error)]"
 		>
-			Clear All
+			Clear
 		</button>
 	{/if}
 </div>
