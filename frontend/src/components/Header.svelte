@@ -1,6 +1,7 @@
 <!-- Header bar with logo, filters, sort controls, and settings button -->
 <script lang="ts">
 	import { SettingsIcon, FilterIcon, XIcon } from "svelte-feather-icons";
+	import SettingsPanel from "./SettingsPanel.svelte";
 	import type { FilterOptions, Lifecycle, SortOptions, Visibility } from "$lib/types";
 	import {
 		setFilters,
@@ -266,18 +267,4 @@
 	</div>
 </header>
 
-{#if showSettings}
-	<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onclick={() => (showSettings = false)}>
-		<div class="w-full max-w-md rounded-md border border-[var(--color-border)] bg-[var(--color-bg-surface)] p-6 shadow-lg" onclick={(e) => e.stopPropagation()}>
-			<div class="mb-4 flex items-center justify-between">
-				<h2 class="text-lg font-semibold text-[var(--color-fg-base)]">Settings</h2>
-				<button onclick={() => (showSettings = false)} class="text-[var(--color-fg-muted)] hover:text-[var(--color-fg-base)]">
-					<XIcon size="20" />
-				</button>
-			</div>
-			<p class="text-sm text-[var(--color-fg-muted)]">
-				Settings panel coming soon. For now, edit the config file directly.
-			</p>
-		</div>
-	</div>
-{/if}
+<SettingsPanel show={showSettings} onClose={() => (showSettings = false)} />
