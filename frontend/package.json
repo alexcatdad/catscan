@@ -16,7 +16,7 @@
 		"svelte": "5.20.2",
 		"svelte-check": "4.3.6",
 		"tailwindcss": "4.1.18",
-		"vite": "6.2.1"
+		"vite": "6.4.1"
 	},
 	"peerDependencies": {
 		"typescript": "^5"
