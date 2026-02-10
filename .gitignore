@@ -15,3 +15,14 @@ tmp/
 
 # Git worktrees
 .worktrees/
+
+# Cache and state (generated at runtime)
+internal/cache/.config/
+*.go.tmp
+
+# Root-level package artifacts (frontend has its own)
+/bun.lock
+/package.json
+
+# Serena
+.serena/
